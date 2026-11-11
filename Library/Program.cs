@@ -5,6 +5,7 @@ using LibraryApplication.Services;
 using LibraryInfrastructure;
 using LibraryInfrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -78,6 +79,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<LibraryInfrastructure.Persistence.LibraryDbcontext>();
+    await db.Database.MigrateAsync();
+    await LibraryInfrastructure.Persistence.DbSeeder.SeedAsync(
+        db, scope.ServiceProvider.GetRequiredService<IPasswordHasher>());
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();   // أول شيء ليمسك كل الأخطاء
 app.UseSwagger();

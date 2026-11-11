@@ -19,7 +19,7 @@ namespace LibraryDomain.Entities
         [Required(ErrorMessage = "Password is required")]
         public string PasswordHash { get; set; } = string.Empty;
         public UserRole Role { get; set; }
-        public string? PhoneNumber { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
         public ICollection<Loan>? Loans  { get; set; }
 
     }

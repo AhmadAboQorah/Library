@@ -176,8 +176,8 @@ namespace LibraryInfrastructure.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Role")
                         .IsRequired()
