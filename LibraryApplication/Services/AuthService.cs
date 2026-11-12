@@ -35,8 +35,8 @@ public class AuthService : IAuthService
         {
             FullName = dto.FullName.Trim(),
             Email = email,
-            PasswordHash = _hasher.Hash(dto.Password),   // لا نخزن كلمة المرور الصريحة
-            Role = UserRole.User                          // التسجيل العام ينشئ User فقط
+            PasswordHash = _hasher.Hash(dto.Password),  
+            Role = UserRole.User                          
         };
 
         await _users.AddAsync(user);
@@ -48,7 +48,6 @@ public class AuthService : IAuthService
     {
         var user = await _users.GetByEmailAsync(dto.Email.Trim().ToLowerInvariant());
 
-        // نفس الرسالة في الحالتين حتى لا نكشف أي الإيميلات موجودة
         if (user == null || !_hasher.Verify(dto.Password, user.PasswordHash))
             throw new AuthenticationFailedException("Invalid email or password.");
 

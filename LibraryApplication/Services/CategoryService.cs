@@ -67,6 +67,5 @@ public class CategoryService : ICategoryService
         await _uow.SaveChangesAsync();
     }
 
-    // تحويل Entity إلى DTO: لا نُرجع الـ Entity للخارج
     private static CategoryDto ToDto(Category c) => new() { Id = c.Id, Name = c.Name };
 }

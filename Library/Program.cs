@@ -12,9 +12,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---- التسجيل (DI) ----
-builder.Services.AddInfrastructure(builder.Configuration);   // DbContext + Repositories + JWT + BCrypt
-
+builder.Services.AddInfrastructure(builder.Configuration);   
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
@@ -23,7 +21,6 @@ builder.Services.AddScoped<ILoanService, LoanService>();
 
 builder.Services.AddControllers();
 
-// ---- JWT: المفتاح من appsettings.json ----
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
           ?? throw new InvalidOperationException("Missing 'Jwt' section in appsettings.json");
 
@@ -31,7 +28,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.MapInboundClaims = false;   // نبقي أسماء الـ claims كما كتبناها (sub, role)
+        options.MapInboundClaims = false;   
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -41,18 +38,16 @@ builder.Services
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
-            RoleClaimType = "role",         // ليعمل [Authorize(Roles = "...")]
+            RoleClaimType = "role",         
             NameClaimType = "name",
             ClockSkew = TimeSpan.Zero
         };
     });
 builder.Services.AddAuthorization();
 
-// ---- CORS ليتصل الفرونت بالـ API ----
 builder.Services.AddCors(o => o.AddPolicy("Frontend", p =>
     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
-// ---- Swagger مع زر Authorize ----
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -87,12 +82,12 @@ using (var scope = app.Services.CreateScope())
         db, scope.ServiceProvider.GetRequiredService<IPasswordHasher>());
 }
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();   // أول شيء ليمسك كل الأخطاء
+app.UseMiddleware<ExceptionHandlingMiddleware>();  
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors("Frontend");
-app.UseAuthentication();    // من أنت؟ (قبل Authorization)
-app.UseAuthorization();     // هل تملك الصلاحية؟
+app.UseAuthentication();  
+app.UseAuthorization();    
 app.MapControllers();
 
 app.Run();

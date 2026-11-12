@@ -47,7 +47,7 @@ public class BookService : IBookService
             ISBN = dto.ISBN.Trim(),
             PublishYear = dto.PublishYear,
             TotalCopies = dto.TotalCopies,
-            AvailableCopies = dto.TotalCopies,   // الكتاب الجديد: كل النسخ متاحة
+            AvailableCopies = dto.TotalCopies,  
             CategoryId = dto.CategoryId
         };
         foreach (var authorId in authorIds)
@@ -55,7 +55,7 @@ public class BookService : IBookService
 
         await _books.AddAsync(book);
         await _uow.SaveChangesAsync();
-        return await GetByIdAsync(book.Id);   // نعيد القراءة لنحصل على التصنيف والمؤلفين
+        return await GetByIdAsync(book.Id);   
     }
 
     public async Task<BookDto> UpdateAsync(int id, UpdateBookDto dto)
@@ -66,7 +66,6 @@ public class BookService : IBookService
         var authorIds = dto.AuthorIds.Distinct().ToList();
         await ValidateAsync(dto, authorIds, id);
 
-        // النسخ المُعارة حالياً = المجموع القديم - المتاح القديم
         var onLoan = book.TotalCopies - book.AvailableCopies;
         if (dto.TotalCopies < onLoan)
             throw new BusinessRuleException(
@@ -79,7 +78,6 @@ public class BookService : IBookService
         book.AvailableCopies = dto.TotalCopies - onLoan;
         book.CategoryId = dto.CategoryId;
 
-        // نحذف ونضيف الفروقات فقط في المؤلفين
         var toRemove = book.BookAuthors.Where(x => !authorIds.Contains(x.AuthorId)).ToList();
         foreach (var link in toRemove)
             book.BookAuthors.Remove(link);
