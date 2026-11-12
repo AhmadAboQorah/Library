@@ -1,0 +1,45 @@
+erDiagram
+    Users ||--o{ Loans : "borrows"
+    Books ||--o{ Loans : "is borrowed in"
+    Categories ||--o{ Books : "classifies"
+    Books ||--o{ BookAuthors : "has"
+    Authors ||--o{ BookAuthors : "writes"
+
+    Users {
+        int Id PK
+        string FullName
+        string Email UK
+        string PasswordHash
+        string Role "Admin or User"
+        string PhoneNumber "nullable"
+    }
+    Categories {
+        int Id PK
+        string Name UK
+    }
+    Authors {
+        int Id PK
+        string Name
+        string Bio "nullable"
+    }
+    Books {
+        int Id PK
+        string Title
+        string ISBN UK
+        int PublishYear
+        int TotalCopies
+        int AvailableCopies
+        int CategoryId FK
+    }
+    BookAuthors {
+        int BookId PK, FK
+        int AuthorId PK, FK
+    }
+    Loans {
+        int Id PK
+        int BookId FK
+        int UserId FK
+        datetime LoanDate
+        datetime DueDate
+        datetime ReturnDate "nullable"
+    }
