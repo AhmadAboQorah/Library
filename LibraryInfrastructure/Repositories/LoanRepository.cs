@@ -10,7 +10,15 @@ namespace LibraryInfrastructure.Repositories
 {
     public class LoanRepository : ILoanRepository
     {
-        readonly LibraryDbcontext _db;
+        private readonly LibraryDbcontext _db;
+
+        public LoanRepository(LibraryDbcontext db)
+        {
+            _db = db;
+        }
+
+    // ... باقي الدوال
+
         public async Task AddAsync(Loan loan) => await _db.Loans.AddAsync(loan);
 
 

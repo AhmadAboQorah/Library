@@ -9,7 +9,8 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(LibraryDbcontext db, IPasswordHasher hasher)
     {
-        if (!await db.Users.AnyAsync())
+        // كل مستخدم يُفحص بإيميله، فلا يتوقف الأمر على أن يكون الجدول فارغاً
+        if (!await db.Users.AnyAsync(u => u.Email == "admin@library.com"))
         {
             db.Users.Add(new User
             {
@@ -18,6 +19,10 @@ public static class DbSeeder
                 PasswordHash = hasher.Hash("Admin@123"),
                 Role = UserRole.Admin
             });
+        }
+
+        if (!await db.Users.AnyAsync(u => u.Email == "user@library.com"))
+        {
             db.Users.Add(new User
             {
                 FullName = "Demo Member",
@@ -25,8 +30,9 @@ public static class DbSeeder
                 PasswordHash = hasher.Hash("User@123"),
                 Role = UserRole.User
             });
-            await db.SaveChangesAsync();
         }
+
+        await db.SaveChangesAsync();
 
         if (await db.Books.AnyAsync()) return;
 

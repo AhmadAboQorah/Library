@@ -10,7 +10,12 @@ namespace LibraryInfrastructure.Repositories
 {
     public class CategoryRepository : ICategoryRepository
     {
-        readonly LibraryDbcontext _db;
+        private readonly LibraryDbcontext _db;
+
+        public CategoryRepository(LibraryDbcontext db)
+        {
+            _db = db;
+        }
         public async Task AddAsync(Category category) => await _db.Categories.AddAsync(category);
 
 
