@@ -12,7 +12,6 @@ public class BooksController : ControllerBase
     private readonly IBookService _service;
     public BooksController(IBookService service) => _service = service;
 
-    // GET /api/books?title=clean&categoryId=1
     [HttpGet]
     public async Task<ActionResult<List<BookDto>>> GetAll([FromQuery] string? title, [FromQuery] int? categoryId) =>
         Ok(await _service.SearchAsync(title, categoryId));

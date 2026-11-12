@@ -9,7 +9,6 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(LibraryDbcontext db, IPasswordHasher hasher)
     {
-        // كل مستخدم يُفحص بإيميله، فلا يتوقف الأمر على أن يكون الجدول فارغاً
         if (!await db.Users.AnyAsync(u => u.Email == "admin@library.com"))
         {
             db.Users.Add(new User

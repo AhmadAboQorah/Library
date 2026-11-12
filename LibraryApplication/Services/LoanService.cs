@@ -27,16 +27,13 @@ public class LoanService : ILoanService
         var book = await _books.GetByIdAsync(bookId, track: true)
             ?? throw new NotFoundException("Book not found.");
 
-        // قاعدة 1: لا نسخ متاحة
         if (book.AvailableCopies <= 0)
             throw new BusinessRuleException("This book is not available right now (no copies left).");
 
-        // قاعدة 2: الحد الأقصى 3 إعارات نشطة
         if (await _loans.CountActiveByUserAsync(userId) >= MaxActiveLoans)
             throw new BusinessRuleException(
                 $"You cannot borrow more than {MaxActiveLoans} books at the same time.");
 
-        // قاعدة إضافية: لا يستعير نفس الكتاب مرتين وهو لم يُرجعه
         if (await _loans.HasActiveLoanForBookAsync(userId, bookId))
             throw new BusinessRuleException("You already have an active loan for this book.");
 
@@ -46,13 +43,13 @@ public class LoanService : ILoanService
             BookId = bookId,
             UserId = userId,
             LoanDate = now,
-            DueDate = now.AddDays(LoanDays),   // قاعدة 3: 14 يوماً
+            DueDate = now.AddDays(LoanDays),   
             Book = book
         };
         book.AvailableCopies--;
 
         await _loans.AddAsync(loan);
-        await _uow.SaveChangesAsync();   // الإعارة وإنقاص النسخ يُحفظان معاً
+        await _uow.SaveChangesAsync();   
         return ToDto(loan, now);
     }
 
@@ -91,7 +88,6 @@ public class LoanService : ILoanService
 
     private static LoanDto ToDto(Loan l, DateTime now)
     {
-        // متأخرة = لم تُرجع وتجاوزت تاريخ الاستحقاق
         var overdue = l.ReturnDate == null && now > l.DueDate;
         return new LoanDto
         {
