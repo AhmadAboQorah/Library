@@ -2,7 +2,6 @@
 using LibraryDomain.Entities;
 using LibraryInfrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-
 namespace LibraryInfrastructure.Repositories;
 
 public class BookRepository : IBookRepository
@@ -15,17 +14,33 @@ public class BookRepository : IBookRepository
            .Include(b => b.Category)
            .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author);
 
-    public Task<List<Book>> SearchAsync(string? title, int? categoryId)
+    public async Task<(List<Book> Items, int Total)> SearchAsync(string? search, int? categoryId, int page, int pageSize)
     {
         var query = WithDetails().AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(title))
-            query = query.Where(b => b.Title.Contains(title.Trim()));
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.Trim();
+            query = query.Where(b =>
+                b.Title.Contains(s) ||
+                b.ISBN.Contains(s) ||
+                b.PublishYear.ToString().Contains(s) ||
+                b.Category!.Name.Contains(s) ||
+                b.BookAuthors.Any(ba => ba.Author!.Name.Contains(s)));
+        }
 
         if (categoryId.HasValue)
             query = query.Where(b => b.CategoryId == categoryId.Value);
 
-        return query.OrderBy(b => b.Title).ToListAsync();
+        var total = await query.CountAsync();          
+
+        var items = await query
+            .OrderBy(b => b.Title)                    
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, total);
     }
 
     public Task<Book?> GetByIdAsync(int id, bool track = false) =>

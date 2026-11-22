@@ -18,6 +18,7 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();
 
@@ -77,7 +78,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LibraryInfrastructure.Persistence.LibraryDbcontext>();
-    await db.Database.MigrateAsync();
+        await db.Database.MigrateAsync();
     await LibraryInfrastructure.Persistence.DbSeeder.SeedAsync(
         db, scope.ServiceProvider.GetRequiredService<IPasswordHasher>());
 }

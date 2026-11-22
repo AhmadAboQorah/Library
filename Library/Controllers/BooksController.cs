@@ -1,4 +1,5 @@
-﻿using LibraryApplication.DTOs.BookDtos;
+﻿using LibraryApplication.DTOs;
+using LibraryApplication.DTOs.BookDtos;
 using LibraryApplication.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,8 +14,17 @@ public class BooksController : ControllerBase
     public BooksController(IBookService service) => _service = service;
 
     [HttpGet]
-    public async Task<ActionResult<List<BookDto>>> GetAll([FromQuery] string? title, [FromQuery] int? categoryId) =>
-        Ok(await _service.SearchAsync(title, categoryId));
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<BookDto>>> GetAll(
+    [FromQuery] string? search,
+    [FromQuery] int? categoryId,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 50);  
+        return Ok(await _service.SearchAsync(search, categoryId, page, pageSize));
+    }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BookDto>> GetById(int id) => Ok(await _service.GetByIdAsync(id));

@@ -65,6 +65,7 @@ namespace LibraryInfrastructure.Persistence
             {
                 e.Property(a => a.Name).IsRequired().HasMaxLength(150);
                 e.Property(a => a.Bio).HasMaxLength(1000);
+                e.Property(a => a.Nationality).HasMaxLength(100);
             });
 
             modelBuilder.Entity<Book>(e =>
@@ -72,7 +73,9 @@ namespace LibraryInfrastructure.Persistence
                 e.Property(b => b.Title).IsRequired().HasMaxLength(250);
                 e.Property(b => b.ISBN).IsRequired().HasMaxLength(20);
                 e.HasIndex(b => b.ISBN).IsUnique();
+                
             });
+
 
         }
 

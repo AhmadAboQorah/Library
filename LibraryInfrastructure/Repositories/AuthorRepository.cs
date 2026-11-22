@@ -25,4 +25,10 @@ public class AuthorRepository : IAuthorRepository
     public async Task AddAsync(Author author) => await _db.Authors.AddAsync(author);
 
     public void Remove(Author author) => _db.Authors.Remove(author);
+    public Task<Author?> GetWithBooksAsync(int id) =>
+    _db.Authors.AsNoTracking()
+        .Include(a => a.BookAuthors!)
+            .ThenInclude(ba => ba.Book!)
+                .ThenInclude(b => b.Category)
+        .FirstOrDefaultAsync(a => a.Id == id);
 }

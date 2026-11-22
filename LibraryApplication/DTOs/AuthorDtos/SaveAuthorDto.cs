@@ -12,5 +12,9 @@ namespace LibraryApplication.DTOs.AuthorDtos
 
         [StringLength(1000)]
         public string? Bio { get; set; }
+        [StringLength(100)]
+        public string? Nationality { get; set; }
+
+        public DateTime? BirthDate { get; set; }
     }
 }

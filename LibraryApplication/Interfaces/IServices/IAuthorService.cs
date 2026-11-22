@@ -8,5 +8,6 @@ public interface IAuthorService
     Task<AuthorDto> GetByIdAsync(int id);
     Task<AuthorDto> CreateAsync(SaveAuthorDto dto);
     Task<AuthorDto> UpdateAsync(int id, SaveAuthorDto dto);
+    Task<AuthorProfileDto> GetProfileAsync(int id);
     Task DeleteAsync(int id);
 }

@@ -1,4 +1,5 @@
-﻿using LibraryApplication.DTOs.AuthorDtos;
+﻿using LibraryApplication.DTOs;
+using LibraryApplication.DTOs.AuthorDtos;
 using LibraryApplication.DTOs.BookDtos;
 using LibraryApplication.Exceptions;
 using LibraryApplication.Interfaces;
@@ -23,10 +24,16 @@ public class BookService : IBookService
         _uow = uow;
     }
 
-    public async Task<List<BookDto>> SearchAsync(string? title, int? categoryId)
+    public async Task<PagedResult<BookDto>> SearchAsync(string? search, int? categoryId, int page, int pageSize)
     {
-        var list = await _books.SearchAsync(title, categoryId);
-        return list.Select(ToDto).ToList();
+        var (items, total) = await _books.SearchAsync(search, categoryId, page, pageSize);
+        return new PagedResult<BookDto>
+        {
+            Items = items.Select(ToDto).ToList(),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
     }
 
     public async Task<BookDto> GetByIdAsync(int id)

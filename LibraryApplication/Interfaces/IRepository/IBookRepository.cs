@@ -7,7 +7,7 @@ namespace LibraryApplication.Interfaces.IRepository
 {
     public interface IBookRepository
     {
-        Task<List<Book>> SearchAsync(string? title, int? categoryId);
+        Task<(List<Book> Items, int Total)> SearchAsync(string? search, int? categoryId, int page, int pageSize);
         Task<Book?> GetByIdAsync(int id, bool track = false);
         Task<bool> IsbnExistsAsync(string isbn, int? excludeBookId = null);
         Task<bool> HasLoansAsync(int bookId);

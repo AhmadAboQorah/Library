@@ -12,6 +12,7 @@ namespace LibraryApplication.Interfaces.IRepository
         Task<List<Author>> GetByIdsAsync(IEnumerable<int> ids);
         Task<bool> HasBooksAsync(int authorId);
         Task AddAsync(Author author);
+        Task<Author?> GetWithBooksAsync(int id);
         void Remove(Author author);
     }
 }

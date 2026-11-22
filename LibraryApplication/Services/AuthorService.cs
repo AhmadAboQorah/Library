@@ -32,7 +32,13 @@ public class AuthorService : IAuthorService
 
     public async Task<AuthorDto> CreateAsync(SaveAuthorDto dto)
     {
-        var author = new Author { Name = dto.Name.Trim(), Bio = dto.Bio?.Trim() };
+        var author = new Author
+        {
+            Name = dto.Name.Trim(),
+            Bio = dto.Bio?.Trim(),
+            Nationality = dto.Nationality?.Trim(),
+            BirthDate = dto.BirthDate
+        };
         await _authors.AddAsync(author);
         await _uow.SaveChangesAsync();
         return ToDto(author);
@@ -45,6 +51,8 @@ public class AuthorService : IAuthorService
 
         author.Name = dto.Name.Trim();
         author.Bio = dto.Bio?.Trim();
+        author.Nationality = dto.Nationality?.Trim();
+        author.BirthDate = dto.BirthDate;
         await _uow.SaveChangesAsync();
         return ToDto(author);
     }
@@ -61,5 +69,44 @@ public class AuthorService : IAuthorService
         await _uow.SaveChangesAsync();
     }
 
-    private static AuthorDto ToDto(Author a) => new() { Id = a.Id, Name = a.Name, Bio = a.Bio };
+    public async Task<AuthorProfileDto> GetProfileAsync(int id)
+    {
+        var a = await _authors.GetWithBooksAsync(id)
+            ?? throw new NotFoundException("Author not found.");
+
+        var books = (a.BookAuthors ?? new List<BookAuthor>())
+            .Select(ba => ba.Book!)
+            .OrderBy(b => b.PublishYear)
+            .Select(b => new AuthorBookDto
+            {
+                Id = b.Id,
+                Title = b.Title,
+                ISBN = b.ISBN,
+                PublishYear = b.PublishYear,
+                CategoryName = b.Category?.Name ?? "",
+                AvailableCopies = b.AvailableCopies,
+                TotalCopies = b.TotalCopies
+            }).ToList();
+
+        return new AuthorProfileDto
+        {
+            Id = a.Id,
+            Name = a.Name,
+            Bio = a.Bio,
+            Nationality = a.Nationality,
+            BirthDate = a.BirthDate,
+            BooksCount = books.Count,
+            Books = books
+        };
+    }
+
+    private static AuthorDto ToDto(Author a) => new()
+    {
+        Id = a.Id,
+        Name = a.Name,
+        Bio = a.Bio,
+        Nationality = a.Nationality,
+        BirthDate = a.BirthDate
+    };
+     
 }

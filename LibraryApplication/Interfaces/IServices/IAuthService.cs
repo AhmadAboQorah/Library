@@ -1,5 +1,5 @@
-﻿using LibraryApplication.DTOs;
-using LibraryApplication.DTOs.AuthDtos;
+﻿using LibraryApplication.DTOs.AuthDtos;
+using LibraryApplication.DTOs.UserDtos;
 
 namespace LibraryApplication.Interfaces;
 

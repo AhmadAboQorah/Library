@@ -38,4 +38,8 @@ public class AuthorsController : ControllerBase
         await _service.DeleteAsync(id);
         return NoContent();
     }
+    [HttpGet("{id:int}/profile")]
+    [Authorize]   
+    public async Task<ActionResult<AuthorProfileDto>> GetProfile(int id) =>
+    Ok(await _service.GetProfileAsync(id));
 }
