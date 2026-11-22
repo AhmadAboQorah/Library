@@ -5,7 +5,11 @@ const USER_KEY = "libraryUser";
 const Session = {
   token: () => localStorage.getItem(TOKEN_KEY),
   user() {
-    try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
+    try {
+      return JSON.parse(localStorage.getItem(USER_KEY));
+    } catch {
+      return null;
+    }
   },
   save(token, user) {
     localStorage.setItem(TOKEN_KEY, token);
@@ -16,12 +20,21 @@ const Session = {
     localStorage.removeItem(USER_KEY);
   },
   isLoggedIn: () => !!localStorage.getItem(TOKEN_KEY),
-  isAdmin() { const u = this.user(); return !!u && u.role === "Admin"; },
-  isUser() { const u = this.user(); return !!u && u.role === "User"; },
+  isAdmin() {
+    const u = this.user();
+    return !!u && u.role === "Admin";
+  },
+  isUser() {
+    const u = this.user();
+    return !!u && u.role === "User";
+  },
 };
 
 class ApiError extends Error {
-  constructor(message, status) { super(message); this.status = status; }
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+  }
 }
 
 // Turns whatever the API returned into one readable sentence
@@ -47,7 +60,9 @@ async function api(path, { method = "GET", body, protectedCall = true } = {}) {
   let res;
   try {
     res = await fetch(API_BASE + path, {
-      method, headers, body: body !== undefined ? JSON.stringify(body) : undefined,
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
     throw new ApiError("Cannot reach the server. Is the API running?", 0);
@@ -62,7 +77,11 @@ async function api(path, { method = "GET", body, protectedCall = true } = {}) {
 
   if (res.status === 204) return null;
   let data = null;
-  try { data = await res.json(); } catch { /* empty body */ }
+  try {
+    data = await res.json();
+  } catch {
+    /* empty body */
+  }
   if (!res.ok) throw new ApiError(extractMessage(data, res.status), res.status);
   return data;
 }
@@ -73,7 +92,8 @@ function el(tag, props = {}, ...children) {
   for (const [k, v] of Object.entries(props)) {
     if (k === "class") node.className = v;
     else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
-    else if (v !== undefined && v !== null && v !== false) node.setAttribute(k, v === true ? "" : v);
+    else if (v !== undefined && v !== null && v !== false)
+      node.setAttribute(k, v === true ? "" : v);
   }
   for (const c of children.flat()) {
     if (c === null || c === undefined || c === false) continue;
@@ -99,26 +119,140 @@ function logout() {
 }
 
 // ---------- top navigation (built with createElement) ----------
+let navDocHandlers = null;
+
+function navHue(name) {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+
+function navInitials(name) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
+
 function renderNav(active) {
+  if (navDocHandlers) {
+    document.removeEventListener("click", navDocHandlers.click);
+    document.removeEventListener("keydown", navDocHandlers.key);
+    navDocHandlers = null;
+  }
+
   const nav = document.getElementById("nav");
   nav.replaceChildren();
   nav.className = "nav";
-  const link = (href, text, key) => el("a", { href, class: key === active ? "active" : "" }, text);
+  const link = (href, text, key) =>
+    el(
+      "a",
+      { href, class: "nav-link" + (key === active ? " active" : "") },
+      text,
+    );
 
-  nav.append(el("span", { class: "brand" }, "📚 Library"), link("books.html", "Books", "books"));
-  if (Session.isUser()) nav.append(link("loans.html", "My loans", "loans"));
+  const links = el(
+    "div",
+    { class: "nav-links" },
+    link("books.html", "Books", "books"),
+  );
+  if (Session.isUser()) links.append(link("loans.html", "My loans", "loans"));
   if (Session.isAdmin()) {
-    nav.append(link("loans.html", "Overdue loans", "loans"), link("admin.html", "Authors & categories", "admin"));
+    links.append(
+      link("loans.html", "Overdue loans", "loans"),
+      link("admin.html", "Authors & categories", "admin"),
+    );
   }
-  nav.append(el("span", { class: "spacer" }));
 
-  if (Session.isLoggedIn()) {
-    const u = Session.user();
-    nav.append(el("span", { class: "who" }, `${u.fullName} (${u.role})`),
-      el("button", { class: "secondary small", onclick: logout }, "Logout"));
-  } else {
-    nav.append(link("index.html", "Login / Register", "login"));
-  }
+  nav.append(
+    el(
+      "a",
+      { href: "books.html", class: "brand" },
+      el("span", {}, "📚"),
+      "Library",
+    ),
+    links,
+    el("span", { class: "spacer" }),
+  );
+
+  nav.append(
+    Session.isLoggedIn()
+      ? userMenu(active)
+      : link("index.html", "Login / Register", "login"),
+  );
+}
+
+function userMenu(active) {
+  const u = Session.user();
+
+  const trigger = el(
+    "button",
+    {
+      type: "button",
+      class: "user-chip" + (active === "profile" ? " active" : ""),
+      "aria-haspopup": "true",
+      "aria-expanded": "false",
+    },
+    el(
+      "span",
+      {
+        class: "nav-avatar",
+        style: `background:hsl(${navHue(u.fullName)},55%,42%)`,
+      },
+      navInitials(u.fullName),
+    ),
+    el(
+      "span",
+      { class: "user-text" },
+      el("span", { class: "user-name" }, u.fullName),
+      el("span", { class: "user-role" }, u.role),
+    ),
+    el("span", { class: "caret" }, "▾"),
+  );
+
+  const menu = el(
+    "div",
+    { class: "user-menu", hidden: true },
+    el(
+      "div",
+      { class: "user-menu-head" },
+      el("strong", {}, u.fullName),
+      el("div", { class: "muted" }, u.email || ""),
+    ),
+    el("a", { href: "profile.html", class: "menu-item" }, "👤  My profile"),
+    el(
+      "button",
+      { type: "button", class: "menu-item danger-item", onclick: logout },
+      "⎋  Logout",
+    ),
+  );
+
+  const wrap = el("div", { class: "user-menu-wrap" }, trigger, menu);
+
+  const setOpen = (open) => {
+    menu.hidden = !open;
+    trigger.setAttribute("aria-expanded", String(open));
+  };
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOpen(menu.hidden);
+  });
+
+  navDocHandlers = {
+    click: (e) => {
+      if (!wrap.contains(e.target)) setOpen(false);
+    },
+    key: (e) => {
+      if (e.key === "Escape") setOpen(false);
+    },
+  };
+  document.addEventListener("click", navDocHandlers.click);
+  document.addEventListener("keydown", navDocHandlers.key);
+
+  return wrap;
 }
 
 // Pages that need a logged-in user call this first
