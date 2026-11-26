@@ -1,4 +1,5 @@
 using Library.Middleware;
+using LibraryApplication;
 using LibraryApplication.Interfaces;
 using LibraryApplication.Interfaces.IRepository;
 using LibraryApplication.Services;
@@ -12,14 +13,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddInfrastructure(builder.Configuration);   
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IAuthorService, AuthorService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<ILoanService, LoanService>();
-builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
 builder.Services.AddControllers();
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
